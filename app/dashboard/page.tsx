@@ -1,6 +1,7 @@
 import { createClient } from "../../utils/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { updateTicketStatus } from "./actions";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -48,13 +49,15 @@ export default async function DashboardPage() {
                   <th className="p-4">Title</th>
                   <th className="p-4 hidden md:table-cell">Description</th>
                   <th className="p-4">Priority</th>
+                  <th className="p-4">Status</th>
                   <th className="p-4">Date</th>
+                  <th className="p-4">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-gray-700">
                 {tickets?.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="p-8 text-center text-gray-500">
+                    <td colSpan={6} className="p-8 text-center text-gray-500">
                       No tickets found. You are all caught up!
                     </td>
                   </tr>
@@ -81,8 +84,28 @@ export default async function DashboardPage() {
                           {ticket.priority}
                         </span>
                       </td>
+                      <td className="p-4">
+                        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-blue-50 text-blue-700">
+                          {ticket.status || "open"}
+                        </span>
+                      </td>
                       <td className="p-4 text-sm text-gray-500">
                         {new Date(ticket.created_at).toLocaleDateString()}
+                      </td>
+                      <td className="p-4">
+                        <form
+                          action={async () => {
+                            "use server";
+                            await updateTicketStatus(ticket.id, ticket.status);
+                          }}
+                        >
+                          <button
+                            type="submit"
+                            className="text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-md transition-colors"
+                          >
+                            Toggle Status
+                          </button>
+                        </form>
                       </td>
                     </tr>
                   ))
