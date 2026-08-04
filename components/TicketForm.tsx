@@ -37,17 +37,35 @@ export default function TicketForm() {
     },
   });
 
-  // 3. Simulated Submit Handler
+  // 3. API Submit Handler
   const onSubmit = async (data: TicketFormData) => {
     setIsSubmitting(true);
 
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      const response = await fetch("/api/tickets", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
 
-    console.log("Validated Ticket Data:", data);
+      const result = await response.json();
 
-    setIsSubmitting(false);
-    reset(); // Reset form after successful submission
+      if (!response.ok) {
+        // هتطبع خطأ الـ RLS لأننا لسة معملناش Auth، وده طبيعي جداً في المرحلة دي
+        console.error("Failed to submit ticket:", result.error);
+        alert(`Error: ${result.error}`);
+      } else {
+        console.log("Ticket created successfully:", result.data);
+        alert("Ticket submitted successfully!");
+        reset();
+      }
+    } catch (error) {
+      console.error("Network Error:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
